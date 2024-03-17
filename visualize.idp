@@ -1,0 +1,114 @@
+// This file contains necessary formalizations and procedures for visualization of the IDP project.
+// DO NOT CHANGE THIS FILE!!!
+
+include "idpd3/idpd3_voc.idp"
+include <table_utils>
+
+vocabulary V_visual {
+    extern vocabulary idpd3::V_out
+    extern vocabulary V_maze_fixed
+    extern V_maze_fixed::P/2:1
+    
+    ToTileKey(Pos) : key
+
+    
+    w: width
+}
+
+theory T_visual : V_visual {    
+    {
+       	//Center of tiles
+		! x y: d3_x(1, ToTileKey(P(x, y))) = (2*x) + 2.
+       	! x y: d3_y(1, ToTileKey(P(x, y))) = d3_height(1)-(2*y) - 2.
+        
+        // Basic tiles
+        ! x y: d3_type(1, ToTileKey(P(x, y))) = rect.
+       	! x y: d3_rect_width(1, ToTileKey(P(x, y))) = 2.
+       	! x y: d3_rect_height(1, ToTileKey(P(x, y))) = 2.
+       
+	   	! p: d3_color(1, ToTileKey(p)) = "#eeebe1" <- ~Wall(p) & Entrance ~= p & Exit ~= p.
+       	! p: d3_color(1, ToTileKey(p)) = "#00ceff" <- Entrance = p.
+       	! p: d3_color(1, ToTileKey(p)) = "#C1FF83" <- Exit = p.
+       	! p: d3_color(1, ToTileKey(p)) = "#a6ae9c" <- Wall(p).
+       	// TODO: Deal with edge case in which there is a wall in the start or the end node
+       	! x y: d3_order(1, ToTileKey(P(x, y))) = 0.
+      
+	}
+        
+    {
+    	d3_width(1) = 2 * MAX[:Y] + 5 <- MAX[:Y] >= MAX[:X].
+        d3_width(1) = 2 * MAX[:X] + 5 <- MAX[:Y] < MAX[:X].
+    	d3_height(1) = d3_width(1).
+   	}
+}
+
+procedure ToTileKey(p) {
+    return "pos"..tostring(p)
+}
+
+
+
+structure visualStruct : V_visual {
+	order = { 0..4 }
+    image = { "" }
+    color = { "black"; "grey"; "red"; "blue"; "green"; "lime"; "silver"; "#C1FF83"; "#eeebe1"; "#00ceff"; "#ffd08e"; "#58b7d2"; "#a6ae9c"; "#5b7353"}
+    time = { 1 }
+    X = {1}
+    Y = {1}
+    width = { 0..100 }
+    height = { 0..100}
+    ToTileKey = procedure ToTileKey
+}
+
+
+procedure visualize(struct) {
+	print("visualising...")
+    if struct == nil then
+        print("A nil structure provided, most likely as a result from unsat.")
+        return
+    end
+    local ti = os.clock()
+    local newStruct = clone(struct)
+    setvocabulary(newStruct, V_visual)
+    
+    // time
+    //newStruct[V_visual::time.type] = newStruct[V_maze::Time.type]
+    newStruct[V_visual::time.type] = range(1,1)
+    // width and height
+    m = 5
+    w = 5
+    newStruct[idpd3::V_types::width.type] = range(0, w*m)
+    newStruct[idpd3::V_types::height.type] = range(0, w*m)
+    
+    newStruct[V_visual::ToTileKey] = visualStruct[V_visual::ToTileKey]
+    
+    // keys
+    local key = {"test", "time"}
+    for k,v in pairs(totable(newStruct[V_maze_fixed::Pos.type])) do
+        table.insert(key, ToTileKey(v))
+    end
+    newStruct[idpd3::V_types::key.type] = key
+    
+
+    
+    newStruct[idpd3::V_types::color.type] = visualStruct[idpd3::V_types::color.type]
+    newStruct[idpd3::V_types::order.type] = visualStruct[idpd3::V_types::order.type]
+    
+    
+    local ntime = os.clock() + 0.1
+    repeat until os.clock() > ntime
+    local model = onemodel(T_visual, newStruct, V_visual)
+    print(model)
+    idpd3C.visualise(model)
+    ntime = os.clock() + 0.1
+    repeat until os.clock() > ntime
+    local secs = os.clock() - ti + 0.2
+    print("Visualisation took "..tostring(secs).." seconds.")
+}
+
+procedure initVisualization() {
+    idpd3B = idpd3
+    idpd3.init_idpd3()
+    idpd3C = idpd3
+    idpd3 = idpd3B
+}

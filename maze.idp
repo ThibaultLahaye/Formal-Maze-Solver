@@ -1,0 +1,57 @@
+// First name: <your first name>
+// Last name: <your last name>
+// Student number: <your student number>
+// Time estimate: <time_you_spent_on_this_project>
+
+// DO NOT CHANGE THIS VOCABULARY
+vocabulary V_maze_fixed{    
+    type Direction constructed from {L, R, U, D}
+    type X isa nat
+    type Y isa nat
+    type Pos constructed from { P(X, Y) }
+    
+    Wall(Pos) 		// Set of positions that are walls
+    Entrance : Pos	// Entrance position - Represented with the blue color in visualization
+    Exit : Pos		// Exit position - Represented with the green color in visualization
+}
+
+// STUDENT VOCABULARY
+// You are allowed to change this vocabulary
+vocabulary V_maze_student {
+    extern vocabulary V_maze_fixed
+    //Please give a short explanation of each type/predicate/function you introduce here.
+    
+}
+
+
+// STUDENT THEORY
+// Please fill in the theory
+theory T_maze_studetn : V_maze_student {
+    
+   
+}
+
+structure S : V_maze_student {
+    X = { 0..4 }
+    Y = { 0..4 }
+}
+
+procedure main() {
+    // You can use the following structure to check your solution:
+    // Correct mazes: SC1, SC2, SC3, SC4, SC5, SC6, SC7
+    // Incorrect mazes: SI1, SI2, SI3
+    
+    // At the begining you can use structure S and try to generate a maze 
+    model = onemodel(T_maze_studetn, S)
+    if model then
+    	print(model)
+    	initVisualization()
+    	visualize(model)
+    else
+        print("Your theory is unsatisfiable!!!")
+    end
+}
+
+include "tests/correct-mazes.idp"
+include "tests/incorrect-mazes.idp"
+include "visualize.idp"
