@@ -55,12 +55,16 @@ vocabulary V_maze_student {
     //        - the start position
     //        - the end position
     // This implies that the start position needs to be able to reach all of those positions 
+    
+    RestrictedIslandSize : nat
 }
 
 
 // STUDENT THEORY
 // Please fill in the theory
 theory T_maze_studetn : V_maze_student {
+    
+    RestrictedIslandSize = 1 .
 
     // Defining Boundry(Pos):
     {
@@ -124,6 +128,18 @@ theory T_maze_studetn : V_maze_student {
     // Invariant: The exit (green block in figures) is always positioned in the topmost row,
     // second-to-last column.
     ! x[X] y[Y]: Exit = P(x,y) => x = MAX[:X] - 1 & y = MAX[:Y].
+    
+    !x[X],y[Y] : 
+    ((x + RestrictedIslandSize =< MAX[:X]) &
+    (y + RestrictedIslandSize) =< MAX[:Y]) =>
+    
+    (
+    ? xCur[X] yCur[Y] :
+    (xCur >= x & xCur =< x + RestrictedIslandSize) &
+    (yCur >= y & yCur =< y + RestrictedIslandSize) &
+    ~Wall(P(xCur,yCur))
+    
+    ) .
 
 }
 
@@ -133,6 +149,8 @@ structure S : V_maze_student {
 
     Entrance = P(1, 0)
     Exit = P(2, 3)
+    
+   
 }
 
 procedure main() {
@@ -143,7 +161,7 @@ procedure main() {
     // Assignment Incorrect mazes:
 
     // At the begining you can use structure S and try to generate a maze 
-    model = onemodel(T_maze_studetn, SC2)
+    model = onemodel(T_maze_studetn, SC1)
     if model then
         print(model)
         initVisualization()
