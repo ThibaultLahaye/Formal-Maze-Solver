@@ -22,7 +22,7 @@ vocabulary V_maze_student {
     //Please give a short explanation of each type/predicate/function you introduce here.
 
     // This predicate indicates, if the given position is on the boundary of the maze
-    Boundary(Pos)
+    Border(Pos)
 
     // This predictae indicates, if the two given positions are next to eachother
     // Positions one manhattan distance away are considered neighbours,
@@ -56,6 +56,7 @@ vocabulary V_maze_student {
     //        - the end position
     // This implies that the start position needs to be able to reach all of those positions 
     
+    // Makes sure that groups of cells of the same type are not larger than the max island size. E.g. MaxIslandSize = 1: 2x2 cells consisting of only walls and 2x2 cells consisting of only empty cells are not allowed.
     MaxIslandSize : nat
 }
 
@@ -66,12 +67,12 @@ theory T_maze_studetn : V_maze_student {
     
     MaxIslandSize = 1 .
 
-    // Defining Boundary(Pos):
+    // Defining Border(Pos):
     {
-        ! x[X] y[Y]: Boundary(P(x,y)) <- x = MAX[:X].
-        ! x[X] y[Y]: Boundary(P(x,y)) <- x = MIN[:X]. 
-        ! x[X] y[Y]: Boundary(P(x,y)) <- y = MAX[:Y]. 
-        ! x[X] y[Y]: Boundary(P(x,y)) <- y = MIN[:Y].
+        ! x[X] y[Y]: Border(P(x,y)) <- x = MAX[:X].
+        ! x[X] y[Y]: Border(P(x,y)) <- x = MIN[:X]. 
+        ! x[X] y[Y]: Border(P(x,y)) <- y = MAX[:Y]. 
+        ! x[X] y[Y]: Border(P(x,y)) <- y = MIN[:Y].
     }
 
     // Defining NextTo(Pos, Pos):
@@ -113,12 +114,12 @@ theory T_maze_studetn : V_maze_student {
     // Invariant:
     // From each inner wall, an outer wall can be reached through a connection of neighbouring
 	// inner walls
-    ! p[Pos]: ~Boundary(p) & Wall(p) => ?p1: Boundary(p1) & Wall(p1) & ReachViaWalls(p, p1).
+    ! p[Pos]: ~Border(p) & Wall(p) => ?p1: Border(p1) & Wall(p1) & ReachViaWalls(p, p1).
     
     // Invariant:
     // Each empty cell can be reached from the entrance through a connection of neighbouring
 	// empty cells
-    ! p[Pos]: ~Boundary(p) & ~Wall(p) => ReachViaPath(p, Entrance).
+    ! p[Pos]: ~Border(p) & ~Wall(p) => ReachViaPath(p, Entrance).
 
     
     // Invariant:  The entrance is always positioned in the bottommost row (blue block in 
@@ -129,17 +130,28 @@ theory T_maze_studetn : V_maze_student {
     // second-to-last column.
     ! x[X] y[Y]: Exit = P(x,y) => x = MAX[:X] - 1 & y = MAX[:Y].
     
+    
     !x[X],y[Y] : 
+    // One can span a box from (x, y) to (x+IslandSize, y+IslandSize)
     ((x + MaxIslandSize =< MAX[:X]) &
     (y + MaxIslandSize) =< MAX[:Y]) =>
     
+
     (
+    // At least one wall should be found within this spanned box
     ? xCur[X] yCur[Y] :
     (xCur >= x & xCur =< x + MaxIslandSize) &
     (yCur >= y & yCur =< y + MaxIslandSize) &
     ~Wall(P(xCur,yCur))
     
-    ) .
+    ) &
+    (
+    // At least one empty cell should be found within this spanned box
+    ? xCur[X] yCur[Y] :
+    (xCur >= x & xCur =< x + MaxIslandSize) &
+    (yCur >= y & yCur =< y + MaxIslandSize) &
+    Wall(P(xCur,yCur))
+    ).
 
 }
 
