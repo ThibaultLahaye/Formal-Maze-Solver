@@ -35,10 +35,6 @@ vocabulary V_maze_student {
     //      . X .
     //    
     NextTo(Pos, Pos)
-
-    // This predicate indicates, if the four given positions form a 2x2 square.
-    // The square does not need to contain walls.
-    Square(Pos, Pos, Pos, Pos)
     
     // This predicate indicates, if the two given positions are reachable through a path of walls.
     // Modified version of the reachability relation from page 75.
@@ -97,19 +93,6 @@ theory T_maze_studetn : V_maze_student {
     	! p1[Pos] p2[Pos]: ReachViaPath(p1, p2) <- NextTo(p1, p2) & ~Wall(p1) & ~Wall(p2).
         ! p1[Pos] p2[Pos]: ReachViaPath(p1, p2) <- ? p3[Pos]: ~Wall(p3) & ReachViaPath(p1, p3) & ReachViaPath(p3, p2).
     }
-
-
-    // Defining Square(Pos, Pos, Pos, Pos): 
-    {
-        ! p1[Pos] p2[Pos] p3[Pos] p4[Pos]: Square(p1, p2, p3, p4) <- NextTo(p1, p2) & NextTo(p2, p3) & NextTo(p3, p4) & NextTo(p4, p1) & p1 ~= p2 & p1 ~= p3 & p1 ~= p4 & p2 ~= p3 & p2 ~= p4 & p3 ~= p4.
-    }
-
-
-    // Invariant: No Squares (2x2) of walles are allowed
-    ! p1[Pos] p2[Pos] p3[Pos] p4[Pos]: Wall(p1) & Wall(p2) & Wall(p3) & Wall(p4) => ~Square(p1, p2, p3, p4).
-
-    // Invariant: No Squares (2x2) of empty cells are allowed
-    ! p1[Pos] p2[Pos] p3[Pos] p4[Pos]: ~Wall(p1) & ~Wall(p2) & ~Wall(p3) & ~Wall(p4) => ~Square(p1, p2, p3, p4).
 
     // Invariant:
     // From each inner wall, an outer wall can be reached through a connection of neighbouring
