@@ -9,7 +9,7 @@ vocabulary V_maze_fixed{
     type X isa nat
     type Y isa nat
     type Pos constructed from { P(X, Y) }
-    
+
     Wall(Pos) 		// Set of positions that are walls
     Entrance : Pos	// Entrance position - Represented with the blue color in visualization
     Exit : Pos		// Exit position - Represented with the green color in visualization
@@ -20,33 +20,134 @@ vocabulary V_maze_fixed{
 vocabulary V_maze_student {
     extern vocabulary V_maze_fixed
     //Please give a short explanation of each type/predicate/function you introduce here.
+
+    // This predicate indicates, if the given position is on the boundry of the maze
+    Boundry(Pos)
+
+    // This predictae indicates, if the two given positions are next to eachother
+    // Positions one manhattan distance away are considered neighbours,
+    // therefor diagonal elements are not considered neighbours.
+    // A position is also not a neighbour with itself.
+    // Illustration:
+    //
+    //      . X .
+    //      X o X
+    //      . X .
+    //    
+    Neighbouring(Pos, Pos)
+
+    // This predicate indicates, if the four given positions form a 2x2 square.
+    // The square does not need to contain walls.
+    Square(Pos, Pos, Pos, Pos)
     
+    // This predicate indicates, if the two given positions are reachable through a path of walls.
+    // Modified version of the reachability relation from page 75.
+    ReachableTroughWalls(Pos, Pos)
+    
+    // This predicate indicates, if the two given positions are reachable through a path of empty cells.
+    // Modified version of the reachability relation from page 75.
+    ReachableTroughPath(Pos, Pos)
+
+    // Extra Clarifications:
+    // The assignment states that each empty cell needs to reachable from the Entrance.
+    // It also states that an empty cell is either:
+    //        - a non wall position 
+    //        - the start position
+    //        - the end position
+    // This implies that the start position needs to be able to reach all of those positions 
 }
 
 
 // STUDENT THEORY
 // Please fill in the theory
 theory T_maze_studetn : V_maze_student {
+
+    // Defining Boundry(Pos):
+    {
+        ! x[X] y[Y]: Boundry(P(x,y)) <- x = MAX[:X].
+        ! x[X] y[Y]: Boundry(P(x,y)) <- x = MIN[:X]. 
+        ! x[X] y[Y]: Boundry(P(x,y)) <- y = MAX[:Y]. 
+        ! x[X] y[Y]: Boundry(P(x,y)) <- y = MIN[:Y].
+    }
+
+    // Defining Neighbouring(Pos, Pos):
+    // The neighbouring cells of a cells are the adjacent cells to the left, right,
+    // top or bottom of that cell; diagonally adjacent cells are not considered neighbours.
+    {
+        ! x1[X] y1[Y] x2[X] y2[Y]: Neighbouring(P(x1,y1), P(x2,y2)) <- 
+        ((x1-x2)=1 & (y1=y2)) |
+        ((x2-x1)=1 & (y1=y2)) |
+        ((x1=x2) & (y1-y2)=1) |
+        ((x1=x2) & (y2-y1)=1).
+    }
     
-   
+    // Defining ReachableTroughWalls(Pos, Pos)
+    {
+    	! p1[Pos] p2[Pos]: ReachableTroughWalls(p1, p2) <- Neighbouring(p1, p2) & Wall(p1) & Wall(p2).
+        ! p1[Pos] p2[Pos]: ReachableTroughWalls(p1, p2) <- ? p3[Pos]: Wall(p3) & ReachableTroughWalls(p1, p3) & ReachableTroughWalls(p3, p2).
+    }
+    
+    // Defining ReachableTroughPath(Pos, Pos)
+    {
+    	! p1[Pos] p2[Pos]: ReachableTroughPath(p1, p2) <- Neighbouring(p1, p2) & ~Wall(p1) & ~Wall(p2).
+        ! p1[Pos] p2[Pos]: ReachableTroughPath(p1, p2) <- ? p3[Pos]: ~Wall(p3) & ReachableTroughPath(p1, p3) & ReachableTroughPath(p3, p2).
+    }
+
+
+    // Defining Square(Pos, Pos, Pos, Pos): 
+    {
+        ! p1[Pos] p2[Pos] p3[Pos] p4[Pos]: Square(p1, p2, p3, p4) <- Neighbouring(p1, p2) & Neighbouring(p2, p3) & Neighbouring(p3, p4) & Neighbouring(p4, p1) & p1 ~= p2 & p1 ~= p3 & p1 ~= p4 & p2 ~= p3 & p2 ~= p4 & p3 ~= p4.
+    }
+
+
+    // Invariant: No Squares (2x2) of walles are allowed
+    ! p1[Pos] p2[Pos] p3[Pos] p4[Pos]: Wall(p1) & Wall(p2) & Wall(p3) & Wall(p4) => ~Square(p1, p2, p3, p4).
+
+    // Invariant: No Squares (2x2) of empty cells are allowed
+    ! p1[Pos] p2[Pos] p3[Pos] p4[Pos]: ~Wall(p1) & ~Wall(p2) & ~Wall(p3) & ~Wall(p4) => ~Square(p1, p2, p3, p4).
+
+    // Invariant:
+    // From each inner wall, an outer wall can be reached through a connection of neighbouring
+	// inner walls
+    ! p[Pos]: ~Boundry(p) & Wall(p) => ?p1: Boundry(p1) & Wall(p1) & ReachableTroughWalls(p, p1).
+    
+    // Invariant:
+    // Each empty cell can be reached from the entrance through a connection of neighbouring
+	// empty cells
+    ! p[Pos]: ~Boundry(p) & ~Wall(p) => ReachableTroughPath(p, Entrance).
+
+    
+    // Invariant:  The entrance is always positioned in the bottommost row (blue block in 
+    // figures), second column.
+    ! x[X] y[Y]: Entrance = P(x,y) => x = MIN[:X] + 1 & y = 0.
+
+    // Invariant: The exit (green block in figures) is always positioned in the topmost row,
+    // second-to-last column.
+    ! x[X] y[Y]: Exit = P(x,y) => x = MAX[:X] - 1 & y = MAX[:Y].
+
 }
 
 structure S : V_maze_student {
-    X = { 0..4 }
-    Y = { 0..4 }
+    X = { 0..3 }
+    Y = { 0..3 }
+
+    Entrance = P(1, 0)
+    Exit = P(2, 3)
 }
 
 procedure main() {
     // You can use the following structure to check your solution:
     // Correct mazes: SC1, SC2, SC3, SC4, SC5, SC6, SC7
     // Incorrect mazes: SI1, SI2, SI3
-    
+    // Assignment Correct mazes: 
+    // Assignment Incorrect mazes:
+
     // At the begining you can use structure S and try to generate a maze 
-    model = onemodel(T_maze_studetn, S)
+    model = onemodel(T_maze_studetn, SC2)
     if model then
-    	print(model)
-    	initVisualization()
-    	visualize(model)
+        print(model)
+        initVisualization()
+        visualize(model)
     else
         print("Your theory is unsatisfiable!!!")
     end
@@ -54,4 +155,6 @@ procedure main() {
 
 include "tests/correct-mazes.idp"
 include "tests/incorrect-mazes.idp"
+include "tests/assignment-correct-mazes.idp"
+include "tests/assignment-incorrect-mazes.idp"
 include "visualize.idp"
