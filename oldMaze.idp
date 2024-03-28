@@ -1,0 +1,87 @@
+// First name: <your first name>
+// Last name: <your last name>
+// Student number: <your student number>
+// Time estimate: <time_you_spent_on_this_project>
+
+// DO NOT CHANGE THIS VOCABULARY
+vocabulary V_maze_fixed{    
+    type Direction constructed from {L, R, U, D}
+    type X isa nat
+    type Y isa nat
+    type Pos constructed from { P(X, Y) }
+    
+    Wall(Pos) 		// Set of positions that are walls
+    Entrance : Pos	// Entrance position - Represented with the blue color in visualization
+    Exit : Pos		// Exit position - Represented with the green color in visualization
+}
+
+// STUDENT VOCABULARY
+// You are allowed to change this vocabulary
+vocabulary V_maze_student {
+    extern vocabulary V_maze_fixed
+  
+    RestrictedIslandSize: nat // TODO Generalize to multiple sizes?
+    Square(Pos, Pos)
+    NeighbourWall(Pos, Pos)
+    Boundary(Pos)
+    OuterWall(Pos)
+    InnerWall(Pos)
+    
+    //Please give a short explanation of each type/predicate/function you introduce here.
+    
+}
+
+
+// STUDENT THEORY
+// Please fill in the theory
+theory T_maze_studetn : V_maze_student {
+    {
+        !x,y : Boundary(P(x,y)) <- 
+        x = 0 | y = 0 | x = (MAX[:X] - 1) | y = (MAX[:Y] - 1) .
+    }
+    {
+        !p[Pos] : OuterWall(p) <- Boundary(p) & Wall(p).
+    }
+    {
+        !p[Pos] : InnerWall(p) <- ~Boundary(p) & Wall(p).
+    }
+    {
+        !x1 y1 x2 y2 : NeighbourWall(P(x1, y1), P(x2, y2)) <- 
+        Wall(P(x1, y1)) & Wall(P(x2, y2)) &
+        ((abs(x1 - x2) = 0 & abs(y1 - y2) = 1) |
+        (abs(x1 - x2) = 1 & abs (y1 - y2) = 0)) .
+    }
+    
+    !x[X],y[Y] xCur[X] yCur[Y] :
+    (xCur >= x & xCur =< min(x + 2, MAX[:X]))
+    => Wall(P(x,y)) .
+    
+    // ! x1[X] x2[X] x3[X] x4[X] : min (x1,x2,x3,x4) >= 0 .
+}
+
+structure S : V_maze_student {
+    Wall = {P(0,1);(P(0,2));P(1,1)}
+    RestrictedIslandSize = 2
+    X = { 0..4 }
+    Y = { 0..4 }
+}
+
+procedure main() {
+    // You can use the following structure to check your solution:
+    // Correct mazes: SC1, SC2, SC3, SC4, SC5, SC6, SC7
+    // Incorrect mazes: SI1, SI2, SI3
+    
+    // At the begining you can use structure S and try to generate a maze 
+    model = onemodel(T_maze_studetn, S)
+    if model then
+    	print(model)
+    	initVisualization()
+    	visualize(model)
+    else
+        print("Your theory is unsatisfiable!!!")
+    end
+}
+
+include "tests/correct-mazes.idp"
+include "tests/incorrect-mazes.idp"
+include "visualize.idp"
