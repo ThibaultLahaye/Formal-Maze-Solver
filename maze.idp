@@ -21,8 +21,8 @@ vocabulary V_maze_student {
     extern vocabulary V_maze_fixed
     //Please give a short explanation of each type/predicate/function you introduce here.
 
-    // This predicate indicates, if the given position is on the boundry of the maze
-    Boundry(Pos)
+    // This predicate indicates, if the given position is on the boundary of the maze
+    Boundary(Pos)
 
     // This predictae indicates, if the two given positions are next to eachother
     // Positions one manhattan distance away are considered neighbours,
@@ -42,11 +42,11 @@ vocabulary V_maze_student {
     
     // This predicate indicates, if the two given positions are reachable through a path of walls.
     // Modified version of the reachability relation from page 75.
-    ReachableTroughWalls(Pos, Pos)
+    ReachableThroughWalls(Pos, Pos)
     
     // This predicate indicates, if the two given positions are reachable through a path of empty cells.
     // Modified version of the reachability relation from page 75.
-    ReachableTroughPath(Pos, Pos)
+    ReachableThroughPath(Pos, Pos)
 
     // Extra Clarifications:
     // The assignment states that each empty cell needs to reachable from the Entrance.
@@ -66,12 +66,12 @@ theory T_maze_studetn : V_maze_student {
     
     RestrictedIslandSize = 1 .
 
-    // Defining Boundry(Pos):
+    // Defining Boundary(Pos):
     {
-        ! x[X] y[Y]: Boundry(P(x,y)) <- x = MAX[:X].
-        ! x[X] y[Y]: Boundry(P(x,y)) <- x = MIN[:X]. 
-        ! x[X] y[Y]: Boundry(P(x,y)) <- y = MAX[:Y]. 
-        ! x[X] y[Y]: Boundry(P(x,y)) <- y = MIN[:Y].
+        ! x[X] y[Y]: Boundary(P(x,y)) <- x = MAX[:X].
+        ! x[X] y[Y]: Boundary(P(x,y)) <- x = MIN[:X]. 
+        ! x[X] y[Y]: Boundary(P(x,y)) <- y = MAX[:Y]. 
+        ! x[X] y[Y]: Boundary(P(x,y)) <- y = MIN[:Y].
     }
 
     // Defining Neighbouring(Pos, Pos):
@@ -85,16 +85,16 @@ theory T_maze_studetn : V_maze_student {
         ((x1=x2) & (y2-y1)=1).
     }
     
-    // Defining ReachableTroughWalls(Pos, Pos)
+    // Defining ReachableThroughWalls(Pos, Pos)
     {
-    	! p1[Pos] p2[Pos]: ReachableTroughWalls(p1, p2) <- Neighbouring(p1, p2) & Wall(p1) & Wall(p2).
-        ! p1[Pos] p2[Pos]: ReachableTroughWalls(p1, p2) <- ? p3[Pos]: Wall(p3) & ReachableTroughWalls(p1, p3) & ReachableTroughWalls(p3, p2).
+    	! p1[Pos] p2[Pos]: ReachableThroughWalls(p1, p2) <- Neighbouring(p1, p2) & Wall(p1) & Wall(p2).
+        ! p1[Pos] p2[Pos]: ReachableThroughWalls(p1, p2) <- ? p3[Pos]: Wall(p3) & ReachableThroughWalls(p1, p3) & ReachableThroughWalls(p3, p2).
     }
     
-    // Defining ReachableTroughPath(Pos, Pos)
+    // Defining ReachableThroughPath(Pos, Pos)
     {
-    	! p1[Pos] p2[Pos]: ReachableTroughPath(p1, p2) <- Neighbouring(p1, p2) & ~Wall(p1) & ~Wall(p2).
-        ! p1[Pos] p2[Pos]: ReachableTroughPath(p1, p2) <- ? p3[Pos]: ~Wall(p3) & ReachableTroughPath(p1, p3) & ReachableTroughPath(p3, p2).
+    	! p1[Pos] p2[Pos]: ReachableThroughPath(p1, p2) <- Neighbouring(p1, p2) & ~Wall(p1) & ~Wall(p2).
+        ! p1[Pos] p2[Pos]: ReachableThroughPath(p1, p2) <- ? p3[Pos]: ~Wall(p3) & ReachableThroughPath(p1, p3) & ReachableThroughPath(p3, p2).
     }
 
 
@@ -113,12 +113,12 @@ theory T_maze_studetn : V_maze_student {
     // Invariant:
     // From each inner wall, an outer wall can be reached through a connection of neighbouring
 	// inner walls
-    ! p[Pos]: ~Boundry(p) & Wall(p) => ?p1: Boundry(p1) & Wall(p1) & ReachableTroughWalls(p, p1).
+    ! p[Pos]: ~Boundary(p) & Wall(p) => ?p1: Boundary(p1) & Wall(p1) & ReachableThroughWalls(p, p1).
     
     // Invariant:
     // Each empty cell can be reached from the entrance through a connection of neighbouring
 	// empty cells
-    ! p[Pos]: ~Boundry(p) & ~Wall(p) => ReachableTroughPath(p, Entrance).
+    ! p[Pos]: ~Boundary(p) & ~Wall(p) => ReachableThroughPath(p, Entrance).
 
     
     // Invariant:  The entrance is always positioned in the bottommost row (blue block in 
