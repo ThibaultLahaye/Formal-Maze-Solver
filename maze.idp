@@ -114,26 +114,27 @@ theory T_maze_studetn : V_maze_student {
     ! x[X] y[Y]: Exit = P(x,y) => x = MAX[:X] - 1 & y = MAX[:Y].
     
     
-    !x[X],y[Y] : 
-    // One can span a box from (x, y) to (x+IslandSize, y+IslandSize)
-    ((x + MaxIslandSize =< MAX[:X]) &
-    (y + MaxIslandSize) =< MAX[:Y]) =>
+    !xStart[X],yStart[Y] : 
+    // One can span a box from (xStart, yStart) to 
+    // (xStart + IslandSize, yStart + IslandSize)
+    ((xStart + MaxIslandSize =< MAX[:X]) &
+    (yStart + MaxIslandSize) =< MAX[:Y]) =>
     
 
     (
     // At least one wall should be found within this spanned box
-    ? xCur[X] yCur[Y] :
-    (xCur >= x & xCur =< x + MaxIslandSize) &
-    (yCur >= y & yCur =< y + MaxIslandSize) &
-    ~Wall(P(xCur,yCur))
+    ? x[X] y[Y] :
+    (x >= xStart & x =< xStart + MaxIslandSize) &
+    (y >= yStart & y =< yStart + MaxIslandSize) &
+    ~Wall(P(x,y))
     
     ) &
     (
     // At least one empty cell should be found within this spanned box
-    ? xCur[X] yCur[Y] :
-    (xCur >= x & xCur =< x + MaxIslandSize) &
-    (yCur >= y & yCur =< y + MaxIslandSize) &
-    Wall(P(xCur,yCur))
+    ? x[X] y[Y] :
+    (x >= xStart & x =< xStart + MaxIslandSize) &
+    (y >= yStart & y =< yStart + MaxIslandSize) &
+    Wall(P(x,y))
     ).
 
 }
@@ -156,7 +157,7 @@ procedure main() {
     // Assignment Incorrect mazes:
 
     // At the begining you can use structure S and try to generate a maze 
-    model = onemodel(T_maze_studetn, SC1)
+    model = onemodel(T_maze_studetn, SI3)
     if model then
         print(model)
         initVisualization()
